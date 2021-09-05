@@ -1,21 +1,34 @@
-def decimal_to_binary(number):
-    return int(format(number,"b"))
+def validate_red_hosts(number_networks, net_num, number_prefix, sub_hosts, cont=0):
+    if number_networks == 0:
+        return True
+    if cont == 0:
+        net_num = (2**(32 - number_prefix - sub_hosts[cont][1]))-1
+    else: 
+        if sub_hosts[cont][1] - sub_hosts[cont-1][1] == 0:
+            net_num -= 1
+        else:
+            print("net num: int: ", net_num,"number_prefix:",number_prefix, "host:",sub_hosts[cont][1] )
+            net_num += ((2**(32 - number_prefix - sub_hosts[cont][1]))-1)
+            print("net num: int: ", net_num)
+    print("net_num:", net_num, "cont=", cont, "number_networks", number_networks)
+    if net_num == 0:
+        return False
+    validate_red_hosts(number_networks-1,net_num,number_prefix + net_num,sub_hosts,cont+1)
 
-def binary_to_decimal(number_binary):
-    return int(number_binary,2)
+#Se lee el prefijo de red
+network_prefix = 23 #int(input("Ingrese el prefijo de red: "))
 
-def split_base_address(base_address):
-    return list(map(int, base_address.split(".")))
+#Se lee el numero de redes
+number_networks = 6 #int(input("Ingrese el número de redes: "))
+sub_hosts = {}
+sub_hosts[0] = [200,8]
+sub_hosts[1] = [120,7]
+sub_hosts[2] = [62,6]
+sub_hosts[3] = [28,5]
+sub_hosts[4] = [13,4]
+sub_hosts[5] = [2,2]
 
-# se lee dirección IP base
-base_address = "192.168.0.1" #input("Ingrese la dirección IP base: ")
-list_base_address = split_base_address(base_address)
-print(list_base_address)
-binary_list_base_address = []
-for i in range(4):
-    binary_list_base_address.append(decimal_to_binary(list_base_address[i]))
-print(binary_list_base_address)
-# se lee el prefijo de red
-network_prefix = 24 #int(input("Ingrese el prefijo de red: "))
-# se lee el numero de redes
-number_networks = 5 #int(input("Ingrese el número de redes: "))
+if validate_red_hosts(number_networks,0, network_prefix, sub_hosts):
+    print("Valido")
+else:
+    print("NO valido")

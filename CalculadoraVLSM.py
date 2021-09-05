@@ -1,4 +1,4 @@
-"""CALCULADOR VSML MARÍA
+"""CALCULADORA VSML MARÍA
 
 Integrantes:
     - Juan Sebastián Barreto Jimenéz
@@ -9,13 +9,12 @@ Integrantes:
 """
 #Librerías
 import numpy as np
+import math
 
 #Funcion que convierte un numero decimal a binario
-def decimal_to_binary(number, cont=0):
-    if(cont==0):
-        return format(number,"08b")
-    else:
-        return format(number,"b")
+def decimal_to_binary(number, n_format='8'):
+    s_format = '0' + n_format + 'b'
+    return format(number,s_format)
 
 #Funcion que convierte un numero binario a decimal
 def binary_to_decimal(number_binary):
@@ -64,15 +63,27 @@ def validate_red_address(list_base_address, network_prefix):
         return True
     else:
         return False
-"""*****Modifique lo comentado porque creo que no estaba comparando bien"""
-    #comparate_lists = [item for item in list_base_address if item in list_validate_address]
-    #return len(comparate_lists) == 4
+
+def validate_red_hosts(number_networks, net_num, number_prefix, sub_hosts, cont=0):
+    if number_networks == 0:
+        return True
+    if cont == 0:
+        net_num = 2**(32 - number_prefix - sub_hosts[cont][1])-1
+    else: 
+        if sub_hosts[cont][1] - sub_hosts[cont-1][1] == 0:
+            net_num -= 1
+        else:
+            net_num += (2**(32 - number_prefix - (sub_hosts[cont][1]- sub_hosts[cont-1][1]))-1)
+    if net_num == 0:
+        return False
+    validate_red_hosts(number_networks-1,net_num,number_prefix,sub_hosts,cont+1)
+    
 
 """*****No sirve con otra dirección probe con 128.128.128.0/17 y da raro con 
     red 1 : 4000 host
     red 2 : 2500 host
     red 3 : 3000 host
-  Si ordena pero saca mal el calculo"""
+  Si ordena pero saca mal el cálculo"""
   
 #Se lee la dirección IP base
 base_address = "200.200.200.0" #input("Ingrese la dirección IP base: ")
@@ -91,74 +102,77 @@ number_networks_bits = []
 # Validar la dirección dirección IP base
 if(not(validate_red_address(list_base_address,network_prefix))):
     print("La dirección no es de red, vuelva a intentar")
-else:
-    sub_hosts = {}
-    
-    #for i in range(number_networks):
-    #    number_hosts = int(input("Ingrese el número de hosts de la red %d: " % i))
-    #    sub_hosts[i] = [number_hosts, math.ceil(math.log2(number_hosts +2))]
-    sub_hosts[0] = [200,8]
-    sub_hosts[1] = [120,7]
-    sub_hosts[2] = [62,6]
-    sub_hosts[3] = [28,5]
-    sub_hosts[4] = [13,4]
-    sub_hosts[5] = [2,2]
-    
-    #Ordenar los subredes de mayor a menor 
-    for i in range(number_networks):
-        number_networks_bits.append(32 - sub_hosts[i][1] + network_prefix)
-    sub_hosts = sorted(sub_hosts.items(),key=lambda x: x[1], reverse=True)
-    
-    sub_networks = {}
-    sub_networks_end = {}
-    
-    """*****De acá para abajo no revise"""
-    
-    for i  in range(number_networks):
-        num_hosts = sub_hosts[i][1][1] #[subred id, num bit sub, mascara]
-        bit_sub = 32 - network_prefix - num_hosts
-        id_sub = ""
-        if i == 0:
-            for j in range(bit_sub):
-                id_sub += '0'
-        else:
-            id_sub_prev, bit_sub_prev, mask_sub_prev  = sub_networks[i-1]
+    exit()
+sub_hosts = {}
+
+#for i in range(number_networks):
+#    number_hosts = int(input("Ingrese el número de hosts de la red %d: " % i))
+#    sub_hosts[i] = [number_hosts, math.ceil(math.log2(number_hosts +2))]
+sub_hosts[0] = [200,8]
+sub_hosts[1] = [120,7]
+sub_hosts[2] = [62,6]
+sub_hosts[3] = [28,5]
+sub_hosts[4] = [13,4]
+sub_hosts[5] = [2,2]
+# sub_hosts[0] = [4000,12]
+# sub_hosts[1] = [2500,12]
+# sub_hosts[2] = [3000,12]
+
+
+#Ordenar los subredes de mayor a menor 
+for i in range(number_networks):
+    number_networks_bits.append(32 - sub_hosts[i][1] + network_prefix)
+sub_hosts = sorted(sub_hosts.items(),key=lambda x: x[1], reverse=True)
+
+sub_networks = {}
+sub_networks_end = {}
+
+"""*****De acá para abajo no revise"""
+
+for i  in range(number_networks):
+    num_hosts = sub_hosts[i][1][1] #[subred id, num bit sub, mascara]
+    bit_sub = 32 - network_prefix - num_hosts
+    id_sub = ""
+    if i == 0:
+        for j in range(bit_sub):
+            id_sub += '0'
+        bit_sub_base = bit_sub
+    else:
+        id_sub_prev, bit_sub_prev, mask_sub_prev  = sub_networks[i-1]
+        if bit_sub-bit_sub_prev == 0:
             aux_sum = binary_to_decimal(id_sub_prev)+1
-            if(aux_sum > number_networks_bits[i]):
-                print("No es posible realizar más redes con los hosts indicados")
-                exit()
-            id_sub = decimal_to_binary(aux_sum,1)
-            print("Id sub prev = ", id_sub_prev, "Id sub = ", id_sub)
-            if bit_sub_prev != bit_sub:
-                for j in range(bit_sub - bit_sub_prev):
-                    id_sub += '0'
-        sub_networks[i] = [id_sub, bit_sub, 32 - num_hosts]
-        b_list_base_address = []
-        index_list = network_prefix//8
-        index_oct = network_prefix%8
-        if(index_list > 3):
+        else:
+            aux_sum = (2**(bit_sub)) - (2**(bit_sub-bit_sub_prev))
+        if math.ceil(math.log2(aux_sum)) > number_networks_bits[i]:
+            print("No es posible realizar más redes con los hosts indicados")
             exit()
-        list_red = list_base_address[:]
-        flag = False
-        for j in range(4):
-            b_list_base_address.append(decimal_to_binary(list_red[j]))
-            space = 8 - index_oct
-            if flag:
-                space_two = 8 - bit_sub
-                if space_two < 0:
-                    b_list_base_address[j] =  id_sub[space:space+8]
-                else:
-                    flag = False
-                    b_list_base_address[j] =  id_sub[space:] + b_list_base_address[j][bit_sub:8]
-            if j == index_list:
-                if bit_sub > space:
-                    flag = True
-                    b_list_base_address[j] = b_list_base_address[j][0:index_oct] + id_sub[0:space] + b_list_base_address[j][index_oct+bit_sub:8]
-                    bit_sub -= space
-                else:
-                    b_list_base_address[j] = b_list_base_address[j][0:index_oct] + id_sub + b_list_base_address[j][index_oct+bit_sub:8]
-            list_red[j] = binary_to_decimal(b_list_base_address[j])
-        sub_networks_end[i] = [list_red, 32 - num_hosts]
-    
-    print(sub_networks)
-    print(sub_networks_end)
+        id_sub = decimal_to_binary(aux_sum,str(bit_sub))
+    sub_networks[i] = [id_sub, bit_sub, 32 - num_hosts]
+    b_list_base_address = []
+    index_list = network_prefix//8
+    index_oct = network_prefix%8
+    if(index_list > 3):
+        exit()
+    list_red = list_base_address[:]
+    flag = False
+    for j in range(4):
+        b_list_base_address.append(decimal_to_binary(list_red[j]))
+        space = 8 - index_oct
+        if flag:
+            space_two = 8 - bit_sub
+            if space_two < 0:
+                b_list_base_address[j] =  id_sub[space:space+8]
+            else:
+                flag = False
+                b_list_base_address[j] =  id_sub[space:] + b_list_base_address[j][bit_sub:8]
+        if j == index_list:
+            if bit_sub > space:
+                flag = True
+                b_list_base_address[j] = b_list_base_address[j][0:index_oct] + id_sub[0:space] + b_list_base_address[j][index_oct+bit_sub:8]
+                bit_sub -= space
+            else:
+                b_list_base_address[j] = b_list_base_address[j][0:index_oct] + id_sub + b_list_base_address[j][index_oct+bit_sub:8]
+        list_red[j] = binary_to_decimal(b_list_base_address[j])
+    sub_networks_end[i] = [list_red, 32 - num_hosts]
+
+print(sub_networks_end)
