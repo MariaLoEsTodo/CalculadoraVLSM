@@ -1,31 +1,52 @@
-"""CALCULADORA VSML MARÍA
+"""CALCULATOR VLSM MARÍA
 
-Integrantes:
+Members:
     - Juan Sebastián Barreto Jimenéz
     - Janet Chen He
     - María José Niño Rodriguez
     - David Santiago Quintana Echavarria
 
 """
-#Librerías
+# Imports of the necessary libraries
 import numpy as np
 import math
 from tabulate import tabulate
 
-#Funcion que convierte un numero decimal a binario
+#   Function: decimal_to_binary() 
+#   Purpose: Convert a decimal number to binary
+#   Argument:
+#       number: Decimal number to convert
+#       n_format: Number of bits with default value of '8'
+#   Return:
+#       Binary number
 def decimal_to_binary(number, n_format='8'):
     s_format = '0' + n_format + 'b'
     return format(number,s_format)
 
-#Funcion que convierte un numero binario a decimal
+#   Function: binary_to_decimal() 
+#   Purpose: Convert a binary number to decimal
+#   Argument:
+#       number: Binary number to convert
+#   Return:
+#       Decimal number
 def binary_to_decimal(number_binary):
     return int(number_binary,2)
 
-#Funcion que separa la dirección en cada octeto por "."
+#   Function: split_base_address() 
+#   Purpose: Separate the address in each octet by ".
+#   Argument:
+#       base_address: Base network address
+#   Return:
+#       List with base network address in octets
 def split_base_address(base_address):
     return list(map(int, base_address.split(".")))
 
-#Función que genera la mascara de red a partir del prefijo de red ingresado
+#   Function: build_mask() 
+#   Purpose: Generates the network mask from the entered network prefix
+#   Argument:
+#       number_ones: Network prefix
+#   Return:
+#       List with the mask in bits in octets
 def build_mask(number_ones):
     mask_list = []
     cant_oct = 0
@@ -50,6 +71,14 @@ def build_mask(number_ones):
     return mask_list
 
 #Función que valida la dirección IP base sea de red
+
+#   Function: validate_red_address() 
+#   Purpose: Validate the base IP address is network
+#   Argument:
+#       list_base_address: List with base network address in octets
+#       network_prefix: Network prefix
+#   Return:
+#       Boolean indicating whether the network is valid or not
 def validate_red_address(list_base_address, network_prefix):
     mask = build_mask(network_prefix)
     mask_np = np.array(mask)
@@ -64,40 +93,46 @@ def validate_red_address(list_base_address, network_prefix):
     else:
         return False
 
-#Se lee la dirección IP base
+# The base IP address is read
 base_address = input("Ingrese la dirección IP base: ")
+# Base ip address separated
 list_base_address = split_base_address(base_address)
 
-if len(list_base_address) != 4:
+# Validate if the IP address is correct
+if len(list_base_address) != 4: 
     print("La dirección no es válida")
     exit()
 
-#Se lee el prefijo de red
+# Read the network prefix
 network_prefix = int(input("Ingrese el prefijo de red: "))
 
-# Validar la dirección dirección IP base
+# Validate if the IP address is network
 if(not(validate_red_address(list_base_address,network_prefix))):
     print("La dirección no es de red")
     exit()
 
-#Se lee el numero de redes
+# The number of networks is read
 number_networks = int(input("Ingrese el número de redes: "))
+
+# Variable creation
 number_networks_bits = []
 sub_hosts = {}
+sub_networks = {}
+sub_networks_end = []
 
+# The number of hosts is read for each network
 for i in range(number_networks):
     number_hosts = int(input("Ingrese el número de hosts de la red %d: " % i))
     sub_hosts[i] = [number_hosts, math.ceil(math.log2(number_hosts +2))]
 
+# Sort the subnets from largest to smallest
 sub_hosts = sorted(sub_hosts.items(),key=lambda x: x[1], reverse=True)
 
-#Ordenar los subredes de mayor a menor 
+# Calculate the number of subnets in each subnet
 for i in range(number_networks):
     number_networks_bits.append(32 - sub_hosts[i][1][1] - network_prefix)
 
-sub_networks = {}
-sub_networks_end = []
-
+# VLSM calculation with user entered parameters
 for i  in range(number_networks):
     num_hosts = sub_hosts[i][1][1] #[subred id, num bit sub, mascara]
     bit_sub = 32 - network_prefix - num_hosts
@@ -152,4 +187,5 @@ for i  in range(number_networks):
         print("No es posible realizar más redes con los hosts indicados")
         break
 
+# The calculated subnets are printed in a table for the user
 print('\n',tabulate(sub_networks_end, headers=["Red", "Hosts", "Dirección de red"]))
