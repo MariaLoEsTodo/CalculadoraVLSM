@@ -119,6 +119,8 @@ number_networks_bits = []
 sub_hosts = {}
 sub_networks = {}
 sub_networks_end = []
+flag_print_error_hosts = False
+flag_print_table = True
 
 # The number of hosts is read for each network
 for i in range(number_networks):
@@ -139,7 +141,8 @@ for i  in range(number_networks):
     id_sub = ""
     if i == 0:
         if number_networks_bits[0] < 0:
-            print("No es posible realizar más redes con los hosts indicados")
+            flag_print_error_hosts = True
+            flag_print_table = False
             break
         for j in range(bit_sub):
             id_sub += '0'
@@ -153,7 +156,7 @@ for i  in range(number_networks):
         if aux_sum %2 == 0:
             comparator_max += 1 
         if comparator_max > number_networks_bits[i]:
-            print("No es posible realizar más redes con los hosts indicados")
+            flag_print_error_hosts = True
             break
         id_sub = decimal_to_binary(aux_sum,str(bit_sub))
     sub_networks[i] = [id_sub, bit_sub, 32 - num_hosts]
@@ -184,8 +187,14 @@ for i  in range(number_networks):
         list_red[j] = binary_to_decimal(b_list_base_address[j])
     sub_networks_end.append([i+1, sub_hosts[i][1][0], '.'.join([str(int) for int in list_red])+ '/' + str(32 - num_hosts)])
     if i == 0 and number_networks_bits[0] == 0:
-        print("No es posible realizar más redes con los hosts indicados")
+        print("No es posible con los hosts indicados")
+        flag_print_table = False
         break
 
 # The calculated subnets are printed in a table for the user
-print('\n',tabulate(sub_networks_end, headers=["Red", "Hosts", "Dirección de red"]))
+if flag_print_table:
+    print('\n',tabulate(sub_networks_end, headers=["Subred", "Hosts", "Dirección de red"]))
+
+# Error message is printed
+if flag_print_error_hosts:
+    print("\nNo es posible realizar más subredes con los hosts indicados")
