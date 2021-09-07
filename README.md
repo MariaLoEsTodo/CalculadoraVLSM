@@ -12,10 +12,10 @@ Calculator VLSM: Calculation of subnets from a base network and number of networ
 **David Santiago Quintana Echavarria** - *Main team* - [squintanae](https://github.com/XingYi98)<br />
 
 ## Instructions for use
-To use it you need to install dependencies in python:
-    numpy <br />
-    tabulate <br />
+To use it you need to install dependencies in python:<br />
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;numpy <br />
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;tabulate <br />
 <br />
 Commands to install dependencies:<br />
-    numpy: python3 -m pip install numpy<br />
-    tabulate: python3 -m pip install tabulate
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;numpy: python3 -m pip install numpy<br />
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;tabulate: python3 -m pip install tabulate
